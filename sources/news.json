@@ -1,0 +1,12 @@
+{
+  "rss_feeds": [
+    "http://feeds.reuters.com/reuters/businessNews",
+    "http://feeds.reuters.com/reuters/environment",
+    "http://feeds.reuters.com/news/wealth",
+    "http://feeds.reuters.com/reuters/scienceNews",
+    "http://feeds.reuters.com/Reuters/PoliticsNews",
+    "http://feeds.bbci.co.uk/news/world/rss.xml",
+    "http://feeds.bbci.co.uk/news/business/rss.xml",
+    "http://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
+  ]
+}
