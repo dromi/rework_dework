@@ -8,6 +8,7 @@ from database.political import Political
 
 class DBDude:
     def __init__(self):
+        # TODO move this to config
         self.db_file = 'dework.db'
 
     def create_connection(self):
@@ -31,7 +32,10 @@ class DBDude:
         except Error as e:
             print(e)
 
-    def create_enviromental(self, environmental: Environmental):
+    ###################################################################################
+    # ----------------------------- ENVIRONMENTAL -------------------------------------
+    ###################################################################################
+    def create_environmental(self, environmental: Environmental):
         """
         Create a new enviromental into the enviromental table
         :param conn:
@@ -65,6 +69,9 @@ class DBDude:
             cur = conn.cursor()
             cur.execute(sql)
 
+    ###################################################################################
+    # -------------------------------- POLITICAL --------------------------------------
+    ###################################################################################
     def create_political_if_not_exists(self, political: Political):
         """
         Create a new political into the political table
@@ -80,6 +87,16 @@ class DBDude:
             cur.execute(sql, political.to_tuple_insert())
             return cur.lastrowid
 
+    def select_all_political(self):
+        conn = self.create_connection()
+        with conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM political")
+            return [Political.from_tuple(d) for d in cur.fetchall()]
+
+    ###################################################################################
+    # -------------------------------- FINANCIAL --------------------------------------
+    ###################################################################################
     def create_financial(self, financial: Financial):
         """
         Create a new political into the political table
@@ -89,8 +106,40 @@ class DBDude:
         """
         conn = self.create_connection()
         with conn:
-            sql = ''' INSERT INTO financial(symbol, name, price, change, timestamp)
-                      VALUES(?,?,?,?,?) '''
+            sql = ''' INSERT INTO financial(symbol, company, type, industry, price, currency, change, timestamp)
+                      VALUES(?,?,?,?,?,?,?,?) '''
             cur = conn.cursor()
             cur.execute(sql, financial.to_tuple_insert())
+            return cur.lastrowid
+
+    def select_all_financial_private(self):
+        conn = self.create_connection()
+        with conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM financial WHERE type = 'private'")
+            return [Financial.from_tuple(d) for d in cur.fetchall()]
+
+    def select_all_financial_public(self):
+        conn = self.create_connection()
+        with conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM financial WHERE type = 'public'")
+            return [Financial.from_tuple(d) for d in cur.fetchall()]
+
+    def update_financial(self, financial_update):
+        """
+        update priority, begin_date, and end date of a task
+        :param conn:
+        :param task:
+        :return: project id
+        """
+        conn = self.create_connection()
+        with conn:
+            sql = ''' UPDATE financial
+                      SET price = ? ,
+                          change = ? ,
+                          timestamp = ?
+                      WHERE company = ?'''
+            cur = conn.cursor()
+            cur.execute(sql, financial_update)
             return cur.lastrowid

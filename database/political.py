@@ -7,6 +7,9 @@ class Political:
         self.published = published
         self.id = id
 
+    def __str__(self):
+        return self.published + " - " + self.title.upper()
+
     @staticmethod
     def from_tuple(data_tuple):
         id, external_id, title, summary, feed, published = data_tuple

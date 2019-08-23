@@ -21,10 +21,13 @@ if __name__ == '__main__':
 
     sql_create_financial_table = """ CREATE TABLE IF NOT EXISTS financial (
                                      id integer PRIMARY KEY,
-                                     symbol text NOT NULL,
-                                     name text,
-                                     price INTEGER NOT NULL,
-                                     change INTEGER NOT NULL,
+                                     symbol text,
+                                     company text NOT NULL UNIQUE,
+                                     type TEXT NOT NULL,
+                                     industry TEXT NOT NULL,
+                                     price BIGINT NOT NULL,
+                                     currency text NOT NULL,
+                                     change BIGINT NOT NULL,
                                      timestamp TIMESTAMP NOT NULL
                                  ); """
 

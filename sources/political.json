@@ -8,5 +8,14 @@
     "http://feeds.bbci.co.uk/news/world/rss.xml",
     "http://feeds.bbci.co.uk/news/business/rss.xml",
     "http://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
+  ],
+  "keywords": [
+    "forest",
+    "deforestation",
+    "soya",
+    "palm oil",
+    "amazon",
+    "plantation",
+    "tropical forest"
   ]
 }

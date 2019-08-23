@@ -45,4 +45,4 @@ if __name__ == '__main__':
         base_value, increment = types.groups()
 
         # create a new project
-        dude.create_enviromental(Environmental(env_name, pretty_name, base_value, increment, datetime.now()))
+        dude.create_environmental(Environmental(env_name, pretty_name, base_value, increment, datetime.now()))
