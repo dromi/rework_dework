@@ -1,11 +1,14 @@
 import json
 import re
 import time
+from multiprocessing import Process
 
 import pandas as pd
 from numpy import nan
 
 from alpha_vantage_service import AlphaVantageService
+from data_retriever import DataRetriever
+from data_presenter import DataPresenter
 from database.db_dude import DBDude
 from datetime import datetime
 import feedparser
@@ -87,7 +90,10 @@ def fetch_financial():
 
 
 if __name__ == '__main__':
-    # list_environmental()
-    # list_rss()
-    # list_stock()
-    fetch_financial()
+    data_retriever = DataRetriever('config.ini')
+    data_presenter = DataPresenter('config.ini')
+    p_fetch = Process(target=data_retriever.run)
+    p_present = Process(target=data_presenter.run)
+    p_fetch.start()
+    p_present.start()
+

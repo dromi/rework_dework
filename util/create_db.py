@@ -1,3 +1,5 @@
+from configparser import ConfigParser
+
 from database.db_dude import DBDude
 
 if __name__ == '__main__':
@@ -31,7 +33,10 @@ if __name__ == '__main__':
                                      timestamp TIMESTAMP NOT NULL
                                  ); """
 
-    dude = DBDude()
+    config = ConfigParser()
+    config.read('config.ini')
+
+    dude = DBDude(config['general']['db_file'])
     dude.create_table(sql_create_environmental_table)
     dude.create_table(sql_create_political_table)
     dude.create_table(sql_create_financial_table)

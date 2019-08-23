@@ -1,5 +1,6 @@
+from configparser import ConfigParser
 from random import choices, choice
-from time import sleep
+import time
 
 from database.db_dude import DBDude
 
@@ -10,23 +11,32 @@ WEIGHTS = {
     'political': 1.0
 }
 
-def fetch_next():
-    dude = DBDude()
-    category = choices(list(WEIGHTS.keys()), weights=WEIGHTS.values())[0]
-    if category == 'financial_public':
-        return choice(dude.select_all_financial_public())
-    elif category == 'financial_private':
-        return choice(dude.select_all_financial_private())
-    elif category == 'environmental':
-        return choice(dude.select_all_environmental())
-    elif category == 'political':
-        return choice(dude.select_all_political())
-    else:
-        print("Error: Choice not recognized")
 
+class DataPresenter():
+    def __init__(self, config_path):
+        self.config = ConfigParser()
+        self.config.read(config_path)
 
-if __name__ == '__main__':
-    while(True):
-        next_item = fetch_next()
-        print(next_item)
-        sleep(2)
+        self.round_sleep_time = self.config.getint('presenter', 'sleep_time')
+
+        self.dude = DBDude(self.config['general']['db_file'])
+
+    def fetch_next(self):
+        category = choices(list(WEIGHTS.keys()), weights=WEIGHTS.values())[0]
+        if category == 'financial_public':
+            return choice(self.dude.select_all_financial_public())
+        elif category == 'financial_private':
+            return choice(self.dude.select_all_financial_private())
+        elif category == 'environmental':
+            return choice(self.dude.select_all_environmental())
+        elif category == 'political':
+            return choice(self.dude.select_all_political())
+        else:
+            print("Error: Choice not recognized")
+
+    def run(self):
+        #TODO find better condition
+        while True:
+            next_item = self.fetch_next()
+            print(next_item)
+            time.sleep(self.round_sleep_time)

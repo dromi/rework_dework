@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import sys
 import time
 from configparser import ConfigParser
 from datetime import datetime
@@ -18,21 +19,36 @@ from database.financial import Financial
 from database.political import Political
 
 
-class DataFetcher:
-    def __init__(self, config_path):
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(__name__)
+class InfoFilter(logging.Filter):
+    def filter(self, rec):
+        return rec.levelno in (logging.DEBUG, logging.INFO)
 
-        self.dude = DBDude()
-        self.alpha = AlphaVantageService()
+
+class DataRetriever:
+    def __init__(self, config_path):
+        # logging.basicConfig(level=logging.DEBUG)
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+
+        h1 = logging.StreamHandler(sys.stdout)
+        h1.setLevel(logging.DEBUG)
+        h1.addFilter(InfoFilter())
+        h2 = logging.StreamHandler(sys.stderr)
+        h2.setLevel(logging.WARNING)
+
+        self.logger.addHandler(h1)
+        self.logger.addHandler(h2)
 
         self.config = ConfigParser()
         self.config.read(config_path)
 
+        self.dude = DBDude(self.config['general']['db_file'])
+        self.alpha = AlphaVantageService()
+
         self.political_sources_path = self.config['sources']['political']
         self.environmental_sources_path = self.config['sources']['environmental']
         self.financial_sources_path = self.config['sources']['financial']
-        self.round_sleep_time = self.config.getint('general', 'data_fetcher_sleep_time')
+        self.round_sleep_time = self.config.getint('retriever', 'sleep_time')
 
     def retrieve_political(self):
         self.logger.info("Starting political retrieval")
@@ -61,27 +77,23 @@ class DataFetcher:
                         self.logger.info(f"story {ent.id} added to DB")
             except Exception:
                 self.logger.error(f"Unable to retrieve or parse from rss feed: {feed}", exc_info=True)
-        print("TOTAL FEED STORIES:", total_stories)
 
     def retrieve_environmental(self):
         self.logger.info("Starting environmental retrieval")
         with open(self.environmental_sources_path) as file:
             environmental_sources = json.load(file)
-
         # Find the ones not already present in the db
         db_environmental = self.dude.select_all_environmental()
         db_env_names = [db_env.name for db_env in db_environmental]
         absent_environmental = dict(filter(lambda env: env[0] not in db_env_names, environmental_sources.items()))
         if len(absent_environmental) == 0:
             self.logger.info("No new environmentals to retrieve")
-
         for env_name, env_url in absent_environmental.items():
             try:
                 env_response = requests.get(env_url)
                 if env_response.status_code != 200:
                     self.logger.warning(f"Bad response code. Received code {env_response.status_code} from {env_url}")
                     continue
-
                 self.logger.info(f"Discovered new environmental: {env_name}")
                 env_html = BeautifulSoup(env_response.content, features="html.parser")
                 big_counter = env_html.find('div', class_='big-counter')
@@ -96,7 +108,6 @@ class DataFetcher:
                 self.dude.create_environmental(Environmental(env_name, pretty_name, base_value, increment,
                                                              datetime.now()))
                 self.logger.info(f"environmental {env_name} - {pretty_name} added to DB")
-
             except Exception:
                 self.logger.error(f"Unable to retrieve or parse environmental: {env_name} - {env_url}", exc_info=True)
 
@@ -109,6 +120,7 @@ class DataFetcher:
     def retrieve_financial(self):
         self.logger.info("Starting financial retrieval")
         financial_df = pd.read_csv(self.financial_sources_path)
+
         # Private Companies
         self.logger.info("Retrieving private financial evaluations")
         private_rows = financial_df.loc[financial_df.TYPE == 'Private']
@@ -131,7 +143,6 @@ class DataFetcher:
         public_rows = financial_df.loc[(financial_df.TYPE == 'Public') & (financial_df.IGNORE != "T")]
         db_publics = self.dude.select_all_financial_public()
         db_companies = [db_pub.company for db_pub in db_publics]
-
         unqouted_stocks = public_rows.loc[~public_rows.COMPANY.str.upper().isin(db_companies)]
         if len(unqouted_stocks) > 0:
             self.logger.info(f"Found {len(unqouted_stocks)} unquoted stocks")
@@ -153,13 +164,11 @@ class DataFetcher:
                     self.logger.info(f"Public financial {public_financial.company} added to DB")
                 except Exception:
                     self.logger.error(f"Unable to retrieve or parse new public financial: {row}", exc_info=True)
-
         else:
             self.logger.info("No unquoted stocks found")
             # Find the 5 oldest entries and update them
-            # TODO test if I need to reverse the sort order
             oldest = sorted(db_publics, key=lambda x: x.timestamp)[:5]
-            self.logger.info(f"Renewing public quotes for: {oldest}")
+            self.logger.info(f"Renewing public quotes for: {[o.company for o in oldest]}")
             for stock in oldest:
                 try:
                     # AlphaVantage might return blank if calls are used up
@@ -175,20 +184,23 @@ class DataFetcher:
                     self.logger.error(f"Unable to retrieve or parse existing public financial: {stock}", exc_info=True)
 
     def run(self):
-        try:
-            self.retrieve_political()
-        except Exception:
-            self.logger.error('Unexpected error occurred during retrieve_political', exc_info=True)
-        try:
-            self.retrieve_environmental()
-        except Exception:
-            self.logger.error('Unexpected error occurred during retrieve_environmental', exc_info=True)
-        try:
-            self.retrieve_financial()
-        except Exception:
-            self.logger.error('Unexpected error occurred during retrieve_financial', exc_info=True)
-        time.sleep(self.round_sleep_time)
+        #TODO find better condition
+        while True:
+            try:
+                self.retrieve_political()
+            except Exception:
+                self.logger.error('Unexpected error occurred during retrieve_political', exc_info=True)
+            try:
+                self.retrieve_environmental()
+            except Exception:
+                self.logger.error('Unexpected error occurred during retrieve_environmental', exc_info=True)
+            try:
+                self.retrieve_financial()
+            except Exception:
+                self.logger.error('Unexpected error occurred during retrieve_financial', exc_info=True)
+            time.sleep(self.round_sleep_time)
+
 
 if __name__ == '__main__':
-    fetcher = DataFetcher('config.ini')
+    fetcher = DataRetriever('config.ini')
     fetcher.run()

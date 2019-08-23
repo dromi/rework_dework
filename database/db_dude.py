@@ -7,12 +7,10 @@ from database.political import Political
 
 
 class DBDude:
-    def __init__(self):
-        # TODO move this to config
-        self.db_file = 'dework.db'
+    def __init__(self, db_file):
+        self.db_file = db_file
 
     def create_connection(self):
-        """ create a database connection to a SQLite database """
         try:
             conn = sqlite3.connect(self.db_file)
             return conn
@@ -20,11 +18,6 @@ class DBDude:
             print(e)
 
     def create_table(self, create_table_sql):
-        """ create a table from the create_table_sql statement
-        :param conn: Connection object
-        :param create_table_sql: a CREATE TABLE statement
-        :return:
-        """
         conn = self.create_connection()
         try:
             c = conn.cursor()
@@ -36,12 +29,6 @@ class DBDude:
     # ----------------------------- ENVIRONMENTAL -------------------------------------
     ###################################################################################
     def create_environmental(self, environmental: Environmental):
-        """
-        Create a new enviromental into the enviromental table
-        :param conn:
-        :param environmental:
-        :return: project id
-        """
         conn = self.create_connection()
         with conn:
             sql = ''' INSERT INTO environmental(name,pretty_name,base_value,increment,retrieval)
@@ -58,11 +45,6 @@ class DBDude:
             return [Environmental.from_tuple(d) for d in cur.fetchall()]
 
     def delete_all_environmental(self):
-        """
-        Delete all rows in the tasks table
-        :param conn: Connection to the SQLite database
-        :return:
-        """
         conn = self.create_connection()
         with conn:
             sql = 'DELETE FROM environmental'
@@ -73,12 +55,6 @@ class DBDude:
     # -------------------------------- POLITICAL --------------------------------------
     ###################################################################################
     def create_political_if_not_exists(self, political: Political):
-        """
-        Create a new political into the political table
-        :param conn:
-        :param political:
-        :return: project id
-        """
         conn = self.create_connection()
         with conn:
             sql = ''' INSERT OR IGNORE INTO political(external_id, title, summary, feed, published)
@@ -98,12 +74,6 @@ class DBDude:
     # -------------------------------- FINANCIAL --------------------------------------
     ###################################################################################
     def create_financial(self, financial: Financial):
-        """
-        Create a new political into the political table
-        :param conn:
-        :param financial:
-        :return: project id
-        """
         conn = self.create_connection()
         with conn:
             sql = ''' INSERT INTO financial(symbol, company, type, industry, price, currency, change, timestamp)
@@ -127,12 +97,6 @@ class DBDude:
             return [Financial.from_tuple(d) for d in cur.fetchall()]
 
     def update_financial(self, financial_update):
-        """
-        update priority, begin_date, and end date of a task
-        :param conn:
-        :param task:
-        :return: project id
-        """
         conn = self.create_connection()
         with conn:
             sql = ''' UPDATE financial
