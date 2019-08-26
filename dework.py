@@ -92,8 +92,7 @@ def fetch_financial():
 if __name__ == '__main__':
     data_retriever = DataRetriever('config.ini')
     data_presenter = DataPresenter('config.ini')
-    p_fetch = Process(target=data_retriever.run)
+    p_retrieve = Process(target=data_retriever.run)
     p_present = Process(target=data_presenter.run)
-    p_fetch.start()
+    p_retrieve.start()
     p_present.start()
-

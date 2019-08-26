@@ -42,9 +42,9 @@ class DataPresenter():
         self.screen_height = self.config.getint('presenter', 'screen_height')
         self.font = self.config['presenter']['font']
         self.font_size = self.config.getint('presenter', 'font_size')
-        self.margin = self.config.getint('presenter', 'margin')
         self.delta_y = self.config.getint('presenter', 'delta_y')
-        self.margin = self.config.getint('presenter', 'margin')
+        self.margin_x = self.config.getint('presenter', 'margin_x')
+        self.margin_y = self.config.getint('presenter', 'margin_y')
 
         self.line_length = self._determine_line_chars()
         self.scrolling_texts = []
@@ -91,7 +91,8 @@ class DataPresenter():
 
             if not any(text.top_y < 0 for text in self.scrolling_texts):
                 text_item, color = self.fetch_next()
-                self.scrolling_texts.append(ScrollText(text_item, self.line_length, font, color, self.margin))
+                self.scrolling_texts.append(ScrollText(text_item, self.line_length, font, color,
+                                                       self.margin_x, self.margin_y))
 
             for text_scroll in self.scrolling_texts:
                 text_scroll.translate(self.delta_y)
@@ -105,9 +106,8 @@ class DataPresenter():
     def _determine_line_chars(self):
         font = pygame.font.SysFont(self.font, self.font_size)
         char_length = 1
-        while font.size("A"*char_length)[0] < (self.screen_width - 2 * self.margin):
+        while font.size("A"*char_length)[0] < (self.screen_width - 2 * self.margin_x):
             char_length += 1
-        print(char_length - 1)
         return char_length - 1
 
 
