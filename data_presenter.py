@@ -62,7 +62,12 @@ class DataPresenter():
         else:
             print("Error: Choice not recognized")
             return None, None
-        return chosen.__str__(), COLORS[category]
+
+        # Ensure that the new fetch isn't already being displayed
+        if chosen.produce_id() in [text.data_id for text in self.scrolling_texts]:
+            return self.fetch_next()
+        else:
+            return chosen, COLORS[category]
 
     def run(self):
         screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -91,8 +96,8 @@ class DataPresenter():
 
             if not any(text.top_y < 0 for text in self.scrolling_texts):
                 text_item, color = self.fetch_next()
-                self.scrolling_texts.append(ScrollText(text_item, self.line_length, font, color,
-                                                       self.margin_x, self.margin_y))
+                self.scrolling_texts.append(ScrollText(text_item.__str__(), text_item.produce_id(), self.line_length,
+                                                       font, color, self.margin_x, self.margin_y))
 
             for text_scroll in self.scrolling_texts:
                 text_scroll.translate(self.delta_y)

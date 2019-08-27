@@ -17,3 +17,6 @@ class Political:
 
     def to_tuple_insert(self):
         return self.external_id, self.title, self.summary, self.feed, self.published
+
+    def produce_id(self):
+        return f"pol_{self.id}"

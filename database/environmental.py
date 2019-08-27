@@ -29,3 +29,6 @@ class Environmental:
     def measure_current_value(self):
         time_delta = datetime.now() - datetime.strptime(self.retrieval, '%Y-%m-%d %H:%M:%S.%f')
         return self.base_value + (self.increment * time_delta.seconds)
+
+    def produce_id(self):
+        return f"env_{self.id}"

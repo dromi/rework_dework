@@ -1,6 +1,11 @@
+import pygame
+
+
 class ScrollText:
-    def __init__(self, text: str, line_length: int, font, color, margin_x, margin_y):
+    def __init__(self, text: str, data_id: str, line_length: int, font: pygame.font.Font, color: tuple,
+                 margin_x: int, margin_y: int):
         self.full_text = text
+        self.data_id = data_id
         self.line_length = line_length
         self.font = font
         self.color = color
@@ -27,17 +32,18 @@ class ScrollText:
             lines.append(' '.join(current_line))
         return lines
 
-    def translate(self, delta_y):
+    def translate(self, delta_y: int):
         self.top_y += delta_y
 
-    def render(self, screen):
+    def render(self, screen: pygame.Surface):
         line_height = self.text_objects[0].get_size()[1]
         for i, text in enumerate(self.text_objects):
             screen.blit(text, (self.margin_x, i * line_height + self.top_y))
 
-    def reset(self, offset, new_item):
-        text, color = new_item
-        self.full_text = text
+    def reset(self, offset: int, new_item: tuple):
+        text_item, color = new_item
+        self.full_text = text_item.__str__()
+        self.data_id = text_item.produce_id()
         self.color = color
         self.text_lines = self._split_string()
         self.text_objects = [self.font.render(t, True, self.color) for t in self.text_lines]

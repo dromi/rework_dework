@@ -88,3 +88,6 @@ class Financial:
 
     def print_growth(self):
         return "+" if self.change >= 0 else ""
+
+    def produce_id(self):
+        return f"fin_{self.id}"
