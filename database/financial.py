@@ -20,7 +20,7 @@ class Financial:
 
     def __str__(self):
         if self.type == 'public':
-            return f"{self.company}: {self.price/100} {self.currency} {self.print_growth()}{self.change/100} ({self.get_percent_change()}%)"
+            return f"{self.company} {self.price/100} {self.currency} {self.print_growth()}{self.change/100} ({self.get_percent_change()}%)"
         elif self.type == 'private':
             return self.company + " " + self._pretty_price(self.price) + " " + self.currency
 
