@@ -6,7 +6,7 @@ import time
 import pygame
 
 from database.db_dude import DBDude
-from scroll_text import ScrollText
+from core.scroll_text import ScrollText
 
 WEIGHTS = {
     'financial_private': 1.0,

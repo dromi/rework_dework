@@ -12,7 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from numpy import nan
 
-from alpha_vantage_service import AlphaVantageService
+from core.alpha_vantage_service import AlphaVantageService
 from database.db_dude import DBDude
 from database.environmental import Environmental
 from database.financial import Financial

@@ -11,7 +11,7 @@ class Environmental:
         self.id = id
 
     def __str__(self):
-        return self.pretty_name.upper() + " - " + str(round(self.measure_current_value(), 2))
+        return self.pretty_name.upper() + ": " + str(round(self.measure_current_value(), 2))
 
     @staticmethod
     def from_tuple(data_tuple):
