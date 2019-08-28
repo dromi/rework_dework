@@ -9,8 +9,7 @@ from database.db_dude import DBDude
 from core.scroll_text import ScrollText
 
 WEIGHTS = {
-    'financial_private': 1.0,
-    'financial_public': 1.0,
+    'financial': 1.0,
     'environmental': 1.0,
     'political': 1.0
 }
@@ -21,8 +20,7 @@ blue = (0, 0, 255)
 red = (255, 0, 0)
 
 COLORS = {
-    'financial_private': blue,
-    'financial_public': blue,
+    'financial': blue,
     'environmental': red,
     'political': green
 }
@@ -51,10 +49,8 @@ class DataPresenter():
 
     def fetch_next(self):
         category = choices(list(WEIGHTS.keys()), weights=WEIGHTS.values())[0]
-        if category == 'financial_public':
-            chosen = choice(self.dude.select_all_financial_public())
-        elif category == 'financial_private':
-            chosen = choice(self.dude.select_all_financial_private())
+        if category == 'financial':
+            chosen = choice(self.dude.select_all_financial())
         elif category == 'environmental':
             chosen = choice(self.dude.select_all_environmental())
         elif category == 'political':

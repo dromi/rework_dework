@@ -43,7 +43,7 @@ class DataRetriever:
         self.config.read(config_path)
 
         self.dude = DBDude(self.config['general']['db_file'])
-        self.alpha = AlphaVantageService()
+        self.alpha = AlphaVantageService(self.config['general']['credentials_file'])
 
         self.political_sources_path = self.config['sources']['political']
         self.environmental_sources_path = self.config['sources']['environmental']
@@ -145,7 +145,7 @@ class DataRetriever:
         db_companies = [db_pub.company for db_pub in db_publics]
         unqouted_stocks = public_rows.loc[~public_rows.COMPANY.str.upper().isin(db_companies)]
         if len(unqouted_stocks) > 0:
-            self.logger.info(f"Found {len(unqouted_stocks)} unquoted stocks")
+            self.logger.info(f"Found {len(unqouted_stocks)} unquoted stock(s)")
             for row in unqouted_stocks[:5].iterrows():
                 try:
                     public = row[1]

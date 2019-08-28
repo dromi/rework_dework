@@ -82,6 +82,13 @@ class DBDude:
             cur.execute(sql, financial.to_tuple_insert())
             return cur.lastrowid
 
+    def select_all_financial(self):
+        conn = self.create_connection()
+        with conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM financial")
+            return [Financial.from_tuple(d) for d in cur.fetchall()]
+
     def select_all_financial_private(self):
         conn = self.create_connection()
         with conn:

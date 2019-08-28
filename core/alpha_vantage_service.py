@@ -3,14 +3,13 @@ import logging
 
 import requests
 
-CRED_FILE = "sources/credentials.json"
-
 
 class AlphaVantageService:
-    def __init__(self):
-        with open(CRED_FILE) as file:
+    def __init__(self, credentials_file_path):
+        with open(credentials_file_path) as file:
             self.api_key = json.load(file)['alpha_vantage_api_key']
             self.logger = logging.getLogger(__name__)
+            self.logger.setLevel(logging.INFO)
 
     def get_stock_quote(self, symbol):
         self.logger.info(f"Performing GLOBAL_QUOTE GET Request for symbol: {symbol}")
@@ -23,7 +22,7 @@ class AlphaVantageService:
             quote = json_data['Global Quote']
             return quote['05. price'], quote['09. change']
         else:
-            self.logger.warning(f"Received improper quote response {json_data}")
+            self.logger.warning(f"Symbol {symbol} received improper quote response {json_data}")
 
     def _convert_to_cents(self, amount):
         return int(round(float(amount) * 100))
