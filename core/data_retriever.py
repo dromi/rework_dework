@@ -25,10 +25,11 @@ class InfoFilter(logging.Filter):
 
 
 class DataRetriever:
-    def __init__(self, config_path):
+    def __init__(self, config_path, queue):
         # logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.DEBUG)
+        self.queue = queue
 
         h1 = logging.StreamHandler(sys.stdout)
         h1.setLevel(logging.DEBUG)
@@ -184,8 +185,8 @@ class DataRetriever:
                     self.logger.error(f"Unable to retrieve or parse existing public financial: {stock}", exc_info=True)
 
     def run(self):
-        #TODO find better condition
-        while True:
+        running = True
+        while running:
             try:
                 self.retrieve_political()
             except Exception:
@@ -198,7 +199,15 @@ class DataRetriever:
                 self.retrieve_financial()
             except Exception:
                 self.logger.error('Unexpected error occurred during retrieve_financial', exc_info=True)
-            time.sleep(self.round_sleep_time)
+            running = self._active_wait()
+
+    def _active_wait(self):
+        for i in range(self.round_sleep_time//5):
+            if self.queue.empty():
+                time.sleep(5)
+            else:
+                return False
+        return True
 
 
 if __name__ == '__main__':

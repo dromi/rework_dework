@@ -26,12 +26,11 @@ COLORS = {
 }
 
 
-pygame.init()
-
 class DataPresenter():
-    def __init__(self, config_path):
+    def __init__(self, config_path, queue):
         self.config = ConfigParser()
         self.config.read(config_path)
+        self.queue = queue
 
         self.dude = DBDude(self.config['general']['db_file'])
 
@@ -73,9 +72,8 @@ class DataPresenter():
             # check for quit events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    # TODO: Find a way for this to work also on a multi thread setup
-                    pygame.quit()
-                    sys.exit()
+                    self.queue.put("halt")
+                    return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         self.delta_y = 0 if self.delta_y == 1 else 1
