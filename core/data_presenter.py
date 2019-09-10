@@ -1,10 +1,11 @@
-import sys
 from configparser import ConfigParser
+from multiprocessing import Queue
 from random import choices, choice
 import time
 
 import pygame
 
+from core.logging_filters import create_logger
 from database.db_dude import DBDude
 from core.scroll_text import ScrollText
 
@@ -31,6 +32,7 @@ class DataPresenter():
         self.config = ConfigParser()
         self.config.read(config_path)
         self.queue = queue
+        self.logger = create_logger(self.config['presenter']['logging_path'], __name__)
 
         self.dude = DBDude(self.config['general']['db_file'])
 
@@ -46,6 +48,10 @@ class DataPresenter():
         self.line_length = self._determine_line_chars()
         self.scrolling_texts = []
 
+        self.logger.info(f"Setup presenter with resolution {self.screen_width}x{self.screen_height} "
+                         f"font {self.font} {self.font_size} margins {self.margin_x}x{self.margin_y} "
+                         f"chars pr line {self.line_length}")
+
     def fetch_next(self):
         category = choices(list(WEIGHTS.keys()), weights=WEIGHTS.values())[0]
         if category == 'financial':
@@ -55,8 +61,8 @@ class DataPresenter():
         elif category == 'political':
             chosen = choice(self.dude.select_all_political())
         else:
-            print("Error: Choice not recognized")
-            return None, None
+            self.logger.error(f"Fetch choice not recognized: {category}")
+            return self.fetch_next()
 
         # Ensure that the new fetch isn't already being displayed
         if chosen.produce_id() in [text.data_id for text in self.scrolling_texts]:
@@ -65,6 +71,7 @@ class DataPresenter():
             return chosen, COLORS[category]
 
     def run(self):
+        self.logger.info("Initiating main presenter loop")
         screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         font = pygame.font.SysFont(self.font, self.font_size)
 
@@ -72,11 +79,17 @@ class DataPresenter():
             # check for quit events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.logger.info("Received QUIT signal, terminating presenter")
                     self.queue.put("halt")
                     return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
-                        self.delta_y = 0 if self.delta_y == 1 else 1
+                        if self.delta_y == 1:
+                            self.logger.info("Pausing presenter")
+                            self.delta_y = 0
+                        else:
+                            self.logger.info("Resuming presenter")
+                            self.delta_y = 1
 
             screen.fill(0)
 
@@ -89,16 +102,21 @@ class DataPresenter():
             # If so move to top of stack (find the one with min y and move above him)
 
             if not any(text.top_y < 0 for text in self.scrolling_texts):
+                self.logger.info("No above screen pending scrolltext found, adding new scrolltext")
                 text_item, color = self.fetch_next()
                 self.scrolling_texts.append(ScrollText(text_item.__str__(), text_item.produce_id(), self.line_length,
                                                        font, color, self.margin_x, self.margin_y))
+                self.logger.info(f"Created scrolltext with content: {text_item.produce_id()}")
 
             for text_scroll in self.scrolling_texts:
                 text_scroll.translate(self.delta_y)
                 text_scroll.render(screen)
                 if text_scroll.top_y > self.screen_height:
+                    self.logger.info("Below screen scrolltext found, resetting")
                     offset = min([text.top_y for text in self.scrolling_texts])
-                    text_scroll.reset(abs(offset), self.fetch_next())
+                    text_item, color = self.fetch_next()
+                    text_scroll.reset(abs(offset), text_item, color)
+                    self.logger.info(f"Updated scrolltext with content: {text_item.produce_id()}")
             pygame.display.update()
             time.sleep(self.sleep_time)
 
@@ -111,5 +129,5 @@ class DataPresenter():
 
 
 if __name__ == '__main__':
-    presenter = DataPresenter('config.ini')
+    presenter = DataPresenter('config.ini', Queue())
     presenter.run()

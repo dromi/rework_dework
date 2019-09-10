@@ -1,10 +1,9 @@
 import json
-import logging
 import re
-import sys
 import time
 from configparser import ConfigParser
 from datetime import datetime
+from multiprocessing import Queue
 
 import feedparser
 import pandas as pd
@@ -13,35 +12,19 @@ from bs4 import BeautifulSoup
 from numpy import nan
 
 from core.alpha_vantage_service import AlphaVantageService
+from core.logging_filters import create_logger
 from database.db_dude import DBDude
 from database.environmental import Environmental
 from database.financial import Financial
 from database.political import Political
 
 
-class InfoFilter(logging.Filter):
-    def filter(self, rec):
-        return rec.levelno in (logging.DEBUG, logging.INFO)
-
-
 class DataRetriever:
     def __init__(self, config_path, queue):
-        # logging.basicConfig(level=logging.DEBUG)
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
         self.queue = queue
-
-        h1 = logging.StreamHandler(sys.stdout)
-        h1.setLevel(logging.DEBUG)
-        h1.addFilter(InfoFilter())
-        h2 = logging.StreamHandler(sys.stderr)
-        h2.setLevel(logging.WARNING)
-
-        self.logger.addHandler(h1)
-        self.logger.addHandler(h2)
-
         self.config = ConfigParser()
         self.config.read(config_path)
+        self.logger = create_logger(self.config['retriever']['logging_path'], __name__)
 
         self.dude = DBDude(self.config['general']['db_file'])
         self.alpha = AlphaVantageService(self.config['general']['credentials_file'])
@@ -185,6 +168,7 @@ class DataRetriever:
                     self.logger.error(f"Unable to retrieve or parse existing public financial: {stock}", exc_info=True)
 
     def run(self):
+        self.logger.info("Initiating retrieval loop")
         running = True
         while running:
             try:
@@ -206,10 +190,11 @@ class DataRetriever:
             if self.queue.empty():
                 time.sleep(5)
             else:
+                self.logger.info("Received halting signal from main")
                 return False
         return True
 
 
 if __name__ == '__main__':
-    fetcher = DataRetriever('config.ini')
+    fetcher = DataRetriever('config.ini', Queue())
     fetcher.run()

@@ -106,3 +106,4 @@ venv.bak/
 .idea/
 *.db
 notes.txt
+credentials.json

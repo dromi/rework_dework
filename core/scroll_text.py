@@ -40,8 +40,7 @@ class ScrollText:
         for i, text in enumerate(self.text_objects):
             screen.blit(text, (self.margin_x, i * line_height + self.top_y))
 
-    def reset(self, offset: int, new_item: tuple):
-        text_item, color = new_item
+    def reset(self, offset: int, text_item, color):
         self.full_text = text_item.__str__()
         self.data_id = text_item.produce_id()
         self.color = color
