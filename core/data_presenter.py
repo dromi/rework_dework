@@ -81,6 +81,9 @@ class DataPresenter():
                 if event.type == pygame.QUIT:
                     self.logger.info("Received QUIT signal, terminating presenter")
                     self.queue.put("halt")
+                    text = font.render("SHUTTING DOWN - please wait", True, white)
+                    screen.blit(text, (self.margin_x, self.screen_height//2))
+                    pygame.display.update()
                     return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
