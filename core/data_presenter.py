@@ -20,10 +20,15 @@ green = (0, 255, 0)
 blue = (0, 0, 255)
 red = (255, 0, 0)
 
+cyan = (0, 255, 255)
+yellow = (255, 255, 0)
+magenta = (255, 0, 255)
+
+
 COLORS = {
-    'financial': blue,
-    'environmental': red,
-    'political': green
+    'financial': yellow,
+    'environmental': magenta,
+    'political': cyan
 }
 
 
@@ -81,8 +86,11 @@ class DataPresenter():
                 if event.type == pygame.QUIT:
                     self.logger.info("Received QUIT signal, terminating presenter")
                     self.queue.put("halt")
-                    text = font.render("SHUTTING DOWN - please wait", True, white)
-                    screen.blit(text, (self.margin_x, self.screen_height//2))
+                    font = pygame.font.SysFont(self.font, self.font_size*2)
+                    text = font.render("SHUTTING DOWN", True, white)
+                    screen.blit(text, (self.margin_x, self.screen_height//2.1))
+                    text = font.render("Please Wait", True, white)
+                    screen.blit(text, (self.margin_x, self.screen_height//1.9))
                     pygame.display.update()
                     return
                 if event.type == pygame.KEYDOWN:
@@ -107,7 +115,7 @@ class DataPresenter():
             if not any(text.top_y < 0 for text in self.scrolling_texts):
                 self.logger.info("No above screen pending scrolltext found, adding new scrolltext")
                 text_item, color = self.fetch_next()
-                self.scrolling_texts.append(ScrollText(text_item.__str__(), text_item.produce_id(), self.line_length,
+                self.scrolling_texts.append(ScrollText(text_item, text_item.produce_id(), self.line_length,
                                                        font, color, self.margin_x, self.margin_y))
                 self.logger.info(f"Created scrolltext with content: {text_item.produce_id()}")
 

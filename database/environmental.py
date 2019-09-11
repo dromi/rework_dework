@@ -11,7 +11,7 @@ class Environmental:
         self.id = id
 
     def __str__(self):
-        return self.pretty_name.upper() + ": " + str(round(self.measure_current_value(), 2))
+        return self.pretty_name.upper() + ": " + "{:.2f}".format(round(self.measure_current_value(), 2))
 
     @staticmethod
     def from_tuple(data_tuple):
@@ -28,7 +28,8 @@ class Environmental:
 
     def measure_current_value(self):
         time_delta = datetime.now() - datetime.strptime(self.retrieval, '%Y-%m-%d %H:%M:%S.%f')
-        return self.base_value + (self.increment * time_delta.seconds)
+        return self.base_value + (self.increment * time_delta.seconds) + (self.increment * time_delta.microseconds
+                                                                          / 1000000)
 
     def produce_id(self):
         return f"env_{self.id}"
