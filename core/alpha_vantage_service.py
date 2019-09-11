@@ -23,6 +23,9 @@ class AlphaVantageService:
             return quote['05. price'], quote['09. change']
         else:
             self.logger.warning(f"Symbol {symbol} received improper quote response {json_data}")
+            if "Error Message" in json_data:
+                self.logger.error(f"Error response detected from Alpha Vantage. Putting {symbol} on ignore list")
+                return "0.0", "0.0"
 
     def _convert_to_cents(self, amount):
         return int(round(float(amount) * 100))

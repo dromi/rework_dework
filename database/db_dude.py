@@ -86,7 +86,7 @@ class DBDude:
         conn = self.create_connection()
         with conn:
             cur = conn.cursor()
-            cur.execute("SELECT * FROM financial")
+            cur.execute("SELECT * FROM financial WHERE price != 0")
             return [Financial.from_tuple(d) for d in cur.fetchall()]
 
     def select_all_financial_private(self):
