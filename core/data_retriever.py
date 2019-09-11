@@ -24,7 +24,7 @@ class DataRetriever:
         self.queue = queue
         self.config = ConfigParser()
         self.config.read(config_path)
-        self.logger = create_logger(self.config['retriever']['logging_path'], __name__)
+        self.logging_path = self.config['retriever']['logging_path']
 
         self.dude = DBDude(self.config['general']['db_file'])
         self.alpha = AlphaVantageService(self.config['general']['credentials_file'])
@@ -168,6 +168,7 @@ class DataRetriever:
                     self.logger.error(f"Unable to retrieve or parse existing public financial: {stock}", exc_info=True)
 
     def run(self):
+        self.logger = create_logger(self.logging_path, __name__)
         self.logger.info("Initiating retrieval loop")
         running = True
         while running:

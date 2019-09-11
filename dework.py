@@ -6,6 +6,7 @@ import pygame
 from core.data_retriever import DataRetriever
 from core.data_presenter import DataPresenter
 from core.logging_filters import create_logger
+from scripts.create_db import create_db_if_not_present
 
 CONFIG_FILE = 'config.ini'
 
@@ -17,6 +18,8 @@ if __name__ == '__main__':
     logger = create_logger(config['general']['logging_path'], __name__)
 
     logger.info("Starting main application")
+
+    create_db_if_not_present(CONFIG_FILE)
 
     queue_retriever = Queue()
     queue_presenter = Queue()

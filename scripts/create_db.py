@@ -2,7 +2,7 @@ from configparser import ConfigParser
 
 from database.db_dude import DBDude
 
-if __name__ == '__main__':
+def create_db_if_not_present(config_file):
     sql_create_environmental_table = """ CREATE TABLE IF NOT EXISTS environmental (
                                         id integer PRIMARY KEY,
                                         name text NOT NULL,
@@ -34,7 +34,7 @@ if __name__ == '__main__':
                                  ); """
 
     config = ConfigParser()
-    config.read('config.ini')
+    config.read(config_file)
 
     dude = DBDude(config['general']['db_file'])
     dude.create_table(sql_create_environmental_table)

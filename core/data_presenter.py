@@ -37,7 +37,7 @@ class DataPresenter():
         self.config = ConfigParser()
         self.config.read(config_path)
         self.queue = queue
-        self.logger = create_logger(self.config['presenter']['logging_path'], __name__)
+        self.logging_path = self.config['presenter']['logging_path']
 
         self.dude = DBDude(self.config['general']['db_file'])
 
@@ -52,10 +52,6 @@ class DataPresenter():
 
         self.line_length = self._determine_line_chars()
         self.scrolling_texts = []
-
-        self.logger.info(f"Setup presenter with resolution {self.screen_width}x{self.screen_height} "
-                         f"font {self.font} {self.font_size} margins {self.margin_x}x{self.margin_y} "
-                         f"chars pr line {self.line_length}")
 
     def fetch_next(self):
         category = choices(list(WEIGHTS.keys()), weights=WEIGHTS.values())[0]
@@ -76,6 +72,10 @@ class DataPresenter():
             return chosen, COLORS[category]
 
     def run(self):
+        self.logger = create_logger(self.logging_path, __name__)
+        self.logger.info(f"Setup presenter with resolution {self.screen_width}x{self.screen_height} "
+                         f"font {self.font} {self.font_size} margins {self.margin_x}x{self.margin_y} "
+                         f"chars pr line {self.line_length}")
         self.logger.info("Initiating main presenter loop")
         screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         font = pygame.font.SysFont(self.font, self.font_size)
