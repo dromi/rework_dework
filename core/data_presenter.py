@@ -2,6 +2,7 @@ from configparser import ConfigParser
 from multiprocessing import Queue
 from random import choices, choice
 import time
+import os
 
 import pygame
 
@@ -49,22 +50,30 @@ class DataPresenter():
         self.delta_y = self.config.getint('presenter', 'delta_y')
         self.margin_x = self.config.getint('presenter', 'margin_x')
         self.margin_y = self.config.getint('presenter', 'margin_y')
+        self.window_pos_x = self.config.getint('presenter', 'window_pos_x')
+        self.window_pos_y = self.config.getint('presenter', 'window_pos_y')
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (self.window_pos_x, self.window_pos_y)
 
         self.line_length = self._determine_line_chars()
         self.scrolling_texts = []
 
+
     def fetch_next(self):
         category = choices(list(WEIGHTS.keys()), weights=WEIGHTS.values())[0]
         if category == 'financial':
-            chosen = choice(self.dude.select_all_financial())
+            entities = self.dude.select_all_financial()
         elif category == 'environmental':
-            chosen = choice(self.dude.select_all_environmental())
+            entities = self.dude.select_all_environmental()
         elif category == 'political':
-            chosen = choice(self.dude.select_all_political())
+            entities = self.dude.select_all_political()
         else:
             self.logger.error(f"Fetch choice not recognized: {category}")
             return self.fetch_next()
 
+        if len(entities) == 0:
+            self.logger.warning(f"No entities in DB for category: {category}")
+            return self.fetch_next()
+        chosen = choice(entities)
         # Ensure that the new fetch isn't already being displayed
         if chosen.produce_id() in [text.data_id for text in self.scrolling_texts]:
             return self.fetch_next()
