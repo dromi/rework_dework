@@ -80,6 +80,16 @@ class DataPresenter():
         else:
             return chosen, COLORS[category]
 
+    def _shutdown(self, screen):
+        self.logger.info("Received QUIT signal, terminating presenter")
+        self.queue.put("halt")
+        font = pygame.font.Font(self.font, self.font_size*2)
+        text = font.render("SHUTTING DOWN", True, white)
+        screen.blit(text, (self.margin_x, self.screen_height//2.1))
+        text = font.render("Please Wait", True, white)
+        screen.blit(text, (self.margin_x, self.screen_height//1.9))
+        pygame.display.update()
+
     def run(self):
         self.logger = create_logger(self.logging_path, __name__)
         self.logger.info(f"Setup presenter with resolution {self.screen_width}x{self.screen_height} "
@@ -93,16 +103,10 @@ class DataPresenter():
             # check for quit events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.logger.info("Received QUIT signal, terminating presenter")
-                    self.queue.put("halt")
-                    font = pygame.font.Font(self.font, self.font_size*2)
-                    text = font.render("SHUTTING DOWN", True, white)
-                    screen.blit(text, (self.margin_x, self.screen_height//2.1))
-                    text = font.render("Please Wait", True, white)
-                    screen.blit(text, (self.margin_x, self.screen_height//1.9))
-                    pygame.display.update()
+                    self._shutdown(screen)
                     return
                 if event.type == pygame.KEYDOWN:
+                    print(event.key)
                     if event.key == pygame.K_SPACE:
                         if self.delta_y == 1:
                             self.logger.info("Pausing presenter")
@@ -110,6 +114,10 @@ class DataPresenter():
                         else:
                             self.logger.info("Resuming presenter")
                             self.delta_y = 1
+                    elif event.key == pygame.K_ESCAPE:
+                        self._shutdown(screen)
+                        return
+
 
             screen.fill(0)
 
