@@ -87,7 +87,7 @@ class DataPresenter():
                          f"chars pr line {self.line_length}")
         self.logger.info("Initiating main presenter loop")
         screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        font = pygame.font.SysFont(self.font, self.font_size)
+        font = pygame.font.Font(self.font, self.font_size)
 
         while True:
             # check for quit events
@@ -95,7 +95,7 @@ class DataPresenter():
                 if event.type == pygame.QUIT:
                     self.logger.info("Received QUIT signal, terminating presenter")
                     self.queue.put("halt")
-                    font = pygame.font.SysFont(self.font, self.font_size*2)
+                    font = pygame.font.Font(self.font, self.font_size*2)
                     text = font.render("SHUTTING DOWN", True, white)
                     screen.blit(text, (self.margin_x, self.screen_height//2.1))
                     text = font.render("Please Wait", True, white)
@@ -141,7 +141,7 @@ class DataPresenter():
             time.sleep(self.sleep_time)
 
     def _determine_line_chars(self):
-        font = pygame.font.SysFont(self.font, self.font_size)
+        font = pygame.font.Font(self.font, self.font_size)
         char_length = 1
         while font.size("A"*char_length)[0] < (self.screen_width - 2 * self.margin_x):
             char_length += 1
